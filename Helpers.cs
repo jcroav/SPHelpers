@@ -268,7 +268,7 @@ public static class Helpers
         {
             try
             {
-                SPContentType contentType = web.AvailableContentTypes[contentName];
+                SPContentType contentType = web.ContentTypes[contentName];
 
                 if (contentType != null)
                 {
@@ -281,7 +281,7 @@ public static class Helpers
                         fieldLink.ReadOnly = readonlyField;
 
                         contentType.FieldLinks.Add(fieldLink);
-                        contentType.Update();
+                        contentType.Update(true);
                     }
                 }
             }
