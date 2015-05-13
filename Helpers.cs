@@ -80,6 +80,38 @@ public static class Helpers
         /// <param name="description"></param>
         /// <param name="name"></param>
         /// <param name="displayName"></param>
+        /// <param name="urlList"></param>
+        /// <param name="field"></param>
+        public static void CreateLookupColumn(this SPWeb web, string group, string description, string name, string displayName, string urlList, string field)
+        {
+            try
+            {
+                SPList lookupList = web.GetList(urlList);
+
+                web.Fields.AddLookup(name, lookupList.ID, lookupList.ParentWeb.ID, true);
+
+                SPFieldLookup lkp = (SPFieldLookup)web.Fields[name];
+                lkp.Description = description;
+                lkp.Group = group;
+                lkp.Title = displayName;
+                lkp.LookupField = lookupList.Fields[field].InternalName;
+
+                lkp.Update();
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:CreateDateTimeColumn. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="web"></param>
+        /// <param name="group"></param>
+        /// <param name="description"></param>
+        /// <param name="name"></param>
+        /// <param name="displayName"></param>
         /// <param name="options"></param>
         /// <param name="defaultOption"></param>
         public static void CreateChoiceColumn(this SPWeb web, string group, string description, string name, string displayName, string [] options, string defaultOption = "")
@@ -442,6 +474,112 @@ public static class Helpers
             catch (Exception ex)
             {
                 SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:AddWebPartToPage. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="web"></param>
+        /// <param name="url"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void AddPropertyBag(this SPWeb web, string name, string value)
+        {
+            try
+            {
+                web.AllowUnsafeUpdates = true;
+
+                if (!web.AllProperties.ContainsKey(name.ToLower()))
+                    web.Properties.Add(name, value);
+                else
+                    web.AllProperties[name] = value;
+
+                web.Properties.Update();
+                web.AllowUnsafeUpdates = false;
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:AddPropertyBag. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="web"></param>
+        /// <param name="url"></param>
+        /// <param name="name"></param>
+        public static void RemovePropertyBag(this SPWeb web, string name)
+        {
+            try
+            {
+                web.AllowUnsafeUpdates = true;
+
+                if (web.AllProperties.ContainsKey(name.ToLower()))
+                    web.Properties.Remove(name);
+
+                web.Properties.Update();
+                web.AllowUnsafeUpdates = false;
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:RemovePropertyBag. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="web"></param>
+        /// <param name="url"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static string GetPropertyBag(this SPWeb web, string name)
+        {
+            try
+            {
+                string property = "";
+
+                if (web.AllProperties.ContainsKey(name.ToLower()))
+                    property = web.Properties[name];
+                else
+                    property = "";
+
+                return property;
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:GetPropertyBag. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
+                throw ex;
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="web"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        public static void CreateDocumentLibrary(this SPWeb web, string name, string description, bool allowModeration = false, bool allowVersioning = false)
+        {
+            try
+            {
+                if (web.Lists.TryGetList(name) == null)
+                    web.Lists.Add(name, description, SPListTemplateType.DocumentLibrary);
+
+                string listUrl = String.Format("{0}", name);
+                SPList list = web.GetList(listUrl);
+
+                list.EnableModeration = allowModeration;
+                list.EnableVersioning = allowVersioning;
+
+                list.Update();
+                web.Update();
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:CreateDocumentLibrary. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
             }
         }
     }
