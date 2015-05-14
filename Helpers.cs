@@ -582,4 +582,31 @@ public static class Helpers
                 SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:CreateDocumentLibrary. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
             }
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="relativeUrl"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        public static void AddSubSite(this SPSite site, string relativeUrl, string name, string description, uint lcid, string template = SPWebTemplate.WebTemplateSTS)
+        {
+            SPWeb newWebSite = null;
+
+            try
+            {
+                using (newWebSite = site.AllWebs.Add(relativeUrl, name, description, lcid, template, false, false))
+                {
+                }
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, "Exception happened in Helpers:AddSubSite " + ex.Message, ex.StackTrace);
+            }
+            finally
+            {
+                if (newWebSite != null)
+                    newWebSite.Dispose();
+            }
+        }
     }
