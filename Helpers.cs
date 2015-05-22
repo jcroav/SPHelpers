@@ -477,6 +477,43 @@ public static class Helpers
             }
         }
         
+        public static void DeleteWebPartFromPage(this SPWeb web, string page, string webpartname)
+        {
+            try
+            {
+                SPFile file = web.GetFile(page);
+
+                if (!file.Exists)
+                {
+                    throw new SPException(string.Format("File '{0}' does not exist", file.ServerRelativeUrl));
+                }
+
+                SPLimitedWebPartManager webPartCollection = file.GetLimitedWebPartManager(System.Web.UI.WebControls.WebParts.PersonalizationScope.Shared);
+
+                //Retrive the webpart and remove
+                List<Microsoft.SharePoint.WebPartPages.WebPart> webPartsToDelete = (from wp in webPartCollection.WebParts.Cast<Microsoft.SharePoint.WebPartPages.WebPart>()
+                                                                                      where string.Compare(wp.Title, webpartname, true) == 0
+                                                                                      select wp).ToList();
+
+                //Check if there are any web parts found
+                if (webPartsToDelete != null)
+                {
+                    foreach (Microsoft.SharePoint.WebPartPages.WebPart webpart in webPartsToDelete)
+                    {
+                        //Remove the webpart
+                        webPartCollection.DeleteWebPart(webpart);
+
+                        //Update
+                        web.Update();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SPDiagnosticsService.Local.WriteTrace(0, new SPDiagnosticsCategory("CORE:HELPERS", TraceSeverity.Unexpected, EventSeverity.Error), TraceSeverity.Unexpected, String.Format("Exception happened in Helpers:ChangePageMasterPage. MESSAGE: {0}. EXCEPTION TRACE: {1} ", ex.Message, ex.StackTrace), ex.StackTrace);
+            }
+        }
+        
         /// <summary>
         /// 
         /// </summary>
